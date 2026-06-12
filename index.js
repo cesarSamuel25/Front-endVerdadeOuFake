@@ -49,6 +49,11 @@ searchForm.addEventListener('submit', async (event) => {
 
         const data = await response.json();
 
+        // =====================================================================
+        // MONITORAMENTO: Linha adicionada para verificar o JSON no console (F12)
+        // =====================================================================
+        console.log("Resposta recebida da API Railway:", data);
+
         // Se deu tudo certo, chama a função para renderizar as alegações na tela
         renderResults(data);
 
@@ -60,7 +65,7 @@ searchForm.addEventListener('submit', async (event) => {
         resultsContainer.innerHTML = '<p>Nenhuma busca realizada ainda.</p>';
         messageContainer.innerText = error.message || "Falha na requisição: Endereço da API inacessível.";
         
-        console.error("Erro detalhado do servidor:", error);
+        console.error("Erro detalhado capturado no fluxo:", error);
     } finally {
         // Sempre reativa os controles da tela ao finalizar (com sucesso ou erro)
         searchButton.disabled = false;
