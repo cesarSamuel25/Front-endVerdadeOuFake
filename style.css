@@ -1,0 +1,247 @@
+/* ==========================================================
+   1. RESET E FUNDO LÍQUIDO DINÂMICO (CORREÇÃO DE ALTURA)
+   ========================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh; /* Garante que o corpo tenha no mínimo a altura total da tela */
+    display: flex;
+    flex-direction: column; /* Organiza verticalmente: nav, content e footer */
+    font-family: 'Poppins', sans-serif;
+    /* Gradiente líquido moderno para destacar o efeito de vidro */
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #3b82f6 100%);
+    background-attachment: fixed;
+    color: #ffffff;
+    overflow-x: hidden; /* Evita barras de rolagem horizontais fantasmas no celular */
+}
+
+/* ==========================================================
+   2. TOPBAR (NAVIGATION BAR)
+   ========================================================== */
+nav {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px 24px;
+    text-align: center;
+}
+
+nav h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================
+   3. CONTAINER PRINCIPAL ADAPTÁVEL
+   ========================================================== */
+.content {
+    flex: 1; /* Ocupa o espaço restante dinamicamente */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    padding: 24px 16px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* ==========================================================
+   4. O CARD DE VIDRO (GLASSMORPHISM)
+   ========================================================== */
+.meu-formulario {
+    background: rgba(255, 255, 255, 0.07); 
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 30px 24px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.15); /* Reflexo na quina do vidro */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 460px;
+}
+
+.meu-formulario label {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.4;
+}
+
+/* Grupo de Input + Botão (Desktop/Telas Médias) */
+.input-group {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    width: 100%;
+}
+
+/* Input Envidraçado */
+.input-group input {
+    flex: 1;
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    color: #ffffff;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Foco Neon no Input */
+.input-group input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Botão Estilo Glow */
+.input-group button {
+    padding: 0 24px;
+    height: 50px; /* Excelente área de clique para dedos no mobile */
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    white-space: nowrap;
+}
+
+.input-group button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.input-group button:active {
+    transform: translateY(0);
+}
+
+/* Controles travados no carregamento */
+.input-group button:disabled, 
+.input-group input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+#messageContainer {
+    width: 100%;
+    max-width: 460px;
+    text-align: left;
+    padding: 0 8px;
+    font-size: 14px;
+}
+
+/* ==========================================================
+   5. SEÇÃO DE RESULTADOS ENVidraÇADA
+   ========================================================== */
+.resultados-section {
+    width: 100%;
+    max-width: 460px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 24px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.resultados-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.resultados-section p {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.resultados-section ol {
+    text-align: left;
+    padding-left: 15px;
+}
+
+.resultados-section li {
+    margin-bottom: 20px;
+}
+
+.resultados-section a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+
+.resultados-section a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================
+   6. RODAPÉ FIXADO NA EXTREMIDADE INFERIOR
+   ========================================================== */
+footer {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+    padding: 20px 16px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    
+    margin-top: auto; /* EMPURRA O FOOTER PARA A PARTE EXTREMA INFERIOR DEFINITIVAMENTE */
+}
+
+/* ==========================================================
+   7. RESPONSIVIDADE PARA CELULARES (MEDIA QUERY)
+   ========================================================== */
+@media (max-width: 500px) {
+    .input-group {
+        flex-direction: column; /* Transforma em linha vertical no mobile */
+        gap: 12px;
+    }
+
+    .input-group button {
+        width: 100%; /* Botão expande no tamanho do card */
+        padding: 14px 0;
+    }
+
+    nav h1 {
+        font-size: 18px;
+    }
+    
+    .meu-formulario {
+        padding: 24px 16px;
+    }
+}
