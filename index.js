@@ -1,6 +1,3 @@
-// TESTE 1: Isso DEVE aparecer no console assim que você atualizar a página
-console.log("✅ O arquivo app.js foi carregado com sucesso pelo navegador!");
-
 // ==========================================
 // CONFIGURAÇÃO: URL da sua API na nuvem (Railway)
 // ==========================================
@@ -13,59 +10,64 @@ const searchButton = document.getElementById('searchButton');
 const resultsContainer = document.getElementById('resultsContainer');
 const messageContainer = document.getElementById('messageContainer');
 
-// Verificação se os elementos existem no HTML
-if (!searchForm) console.error("❌ ERRO: O elemento #searchForm não foi encontrado no HTML. Verifique os IDs.");
-if (!queryInput) console.error("❌ ERRO: O elemento #queryInput não foi encontrado no HTML. Verifique os IDs.");
-
 // Ouvinte de evento para o envio do formulário
 searchForm.addEventListener('submit', async (event) => {
+    // 1. GATILHO IMEDIATO: Cancela o recarregamento antes de rodar qualquer lógica
     event.preventDefault(); 
 
     const queryValue = queryInput.value.trim();
-    
-    // TESTE 2: Isso DEVE aparecer quando você clicar no botão buscar
-    console.log("🔍 Botão de busca clicado! Termo pesquisado:", queryValue);
 
+    // Se o usuário tentar enviar o campo em branco, ignora a busca
     if (!queryValue) return;
 
+    // Limpa os estados anteriores antes de começar a nova requisição
     resultsContainer.innerHTML = 'Buscando dados na API externa na nuvem...';
     messageContainer.innerText = '';
     
+    // Desabilita o botão e o input para evitar cliques duplos enquanto espera o servidor
     searchButton.disabled = true;
     queryInput.disabled = true;
 
     try {
+        // Constrói a URL injetando o query param de forma segura usando o objeto URL nativo
         const url = new URL(API_URL);
         url.searchParams.append('query', queryValue);
 
         console.log("🌐 Disparando requisição HTTP GET para:", url.href);
 
+        // Faz a chamada GET para o backend hospedado na nuvem
         const response = await fetch(url);
         
+        // Se o status HTTP não for de sucesso (2xx), extrai o erro do backend ou joga o padrão
         if (!response.ok) {
             let errorMsg = 'Ocorreu um erro inesperado no servidor em nuvem.';
             try {
                 const data = await response.json();
                 errorMsg = data.detail?.mensagem || errorMsg;
-            } catch(e) { }
+            } catch(e) { /* Proteção caso o servidor envie HTML em vez de JSON */ }
+            
             throw new Error(errorMsg);
         }
 
         const data = await response.json();
 
-        // =====================================================================
-        // TESTE 3: ESSE É O LOG PRINCIPAL QUE VOCÊ QUER VER
-        // =====================================================================
-        printJsonInConsole(data);
+        // Exibe o objeto completo e interativo no console (F12) para auditoria
+        console.log("📦 DADOS BRUTOS RECEBIDOS DA API (RAILWAY):", data);
 
+        // Se deu tudo certo, chama a função para renderizar as alegações na tela
         renderResults(data);
 
     } catch (error) {
-        alert("Não foi possível acessar o serviço de checagem.");
+        // --- POP-UP DE ALERTA DE CONEXÃO/API ---
+        alert("Não foi possível acessar o serviço de checagem. Verifique sua conexão ou tente novamente mais tarde.");
+        
+        // Limpa o carregamento antigo e preenche o container de erros
         resultsContainer.innerHTML = '<p>Nenhuma busca realizada ainda.</p>';
-        messageContainer.innerText = error.message || "Falha na requisição.";
-        console.error("❌ Erro capturado no fluxo:", error);
+        messageContainer.innerText = error.message || "Falha na requisição: Endereço da API inacessível.";
+        
+        console.error("❌ Erro detalhado capturado no fluxo:", error);
     } finally {
+        // Sempre reativa os controles da tela ao finalizar (com sucesso ou erro)
         searchButton.disabled = false;
         queryInput.disabled = false;
         queryInput.focus();
@@ -73,73 +75,83 @@ searchForm.addEventListener('submit', async (event) => {
 });
 
 /**
- * Função auxiliar para isolar o log do JSON de forma limpa e visível
- */
-function printJsonInConsole(data) {
-    console.log("==========================================");
-    console.log("📦 DADOS BRUTOS RECEBIDOS DA API (RAILWAY):");
-    console.log(data); // Exibe o objeto interativo para você expandir
-    console.log("==========================================");
-}
-
-/**
  * Função responsável por construir o HTML dinamicamente com base nos dados recebidos da API
  */
 function renderResults(data) {
-    resultsContainer.innerHTML = '';
+    resultsContainer.innerHTML = ''; // Limpa o texto de carregamento
 
+    // Validação caso a lista venha nula ou vazia
     if (!data.claims || data.claims.length === 0) {
         resultsContainer.innerHTML = '<p>Nenhum resultado retornado do serviço de checagem.</p>';
         return;
     }
 
+    // Cria uma lista ordenada (ol) para agrupar as alegações encontradas
     const ol = document.createElement('ol');
 
-    data.claims.forEach(claim => {
+    data.claims.forEach(item => {
         const li = document.createElement('li');
         
-        const textClaim = claim.text ? claim.text : 'Texto da alegação não fornecido';
-        const claimant = claim.claimant ? claim.claimant : 'Autor desconhecido';
+        // Mapeamento das chaves REAIS entregues pelo seu modelo no backend
+        const textClaim = item.claim ? item.claim : 'Texto da alegação não fornecido';
+        const resultado = item.resultado ? item.resultado : 'Sem veredito';
+        const fonte = item.fonte ? item.fonte : 'Desconhecida';
         
-        const claimDate = claim.claimDate 
-            ? new Date(claim.claimDate).toLocaleDateString('pt-BR') 
-            : 'Data não informada';
+        // Formata as taxas decimais de confiança para porcentagem legível (Ex: 0.898 -> 89.8%)
+        const confiancaFalso = item.confianca_falso ? (item.confianca_falso * 100).toFixed(1) : null;
+        const confiancaVerdadeiro = item.confianca_verdadeiro ? (item.confianca_verdadeiro * 100).toFixed(1) : null;
 
+        // Trata dinamicamente o visual do resultado com base no retorno textual
+        let statusTag = '❓ SEM VEREDITO';
+        if (resultado.toLowerCase() === 'falso') {
+            statusTag = '<span style="color: red; font-weight: bold;">❌ FALSO</span>';
+        } else if (resultado.toLowerCase() === 'verdadeiro') {
+            statusTag = '<span style="color: green; font-weight: bold;">✅ VERDADEIRO</span>';
+        }
+
+        // Monta o bloco inicial de informações da alegação
         let claimHtml = `
             <p><strong>Alegação investigada:</strong> "${textClaim}"</p>
-            <p><strong>Quem disse:</strong> ${claimant} (Data: ${claimDate})</p>
+            <p><strong>Veredito do Modelo:</strong> ${statusTag}</p>
+            <p><strong>Fonte do veredito:</strong> 🤖 Mapeado via <em>${fonte}</em></p>
         `;
 
-        if (claim.claimReview && claim.claimReview.length > 0) {
-            claimHtml += `<strong>Análise das agências de Fact-Checking:</strong><ul>`;
-            
-            claim.claimReview.forEach(review => {
+        // Se o modelo disponibilizar os scores de probabilidade, exibe na tela
+        if (confiancaFalso !== null && confiancaVerdadeiro !== null) {
+            claimHtml += `
+                <strong>Métricas de Certeza da IA:</strong>
+                <ul>
+                    <li>Probabilidade de ser Falso: <strong>${confiancaFalso}%</strong></li>
+                    <li>Probabilidade de ser Verdadeiro: <strong>${confiancaVerdadeiro}%</strong></li>
+                </ul>
+            `;
+        }
+
+        // Bloco de fallback caso a resposta possua a lista clássica do Google Fact-Checking
+        if (item.claimReview && item.claimReview.length > 0) {
+            claimHtml += `<br><strong>Análise das agências (Google API):</strong><ul>`;
+            item.claimReview.forEach(review => {
                 const textualRating = review.textualRating ? review.textualRating : 'Sem classificação';
                 const publisherName = (review.publisher && review.publisher.name) ? review.publisher.name : 'Agência anônima';
-                const publisherSite = (review.publisher && review.publisher.site) ? review.publisher.site : '#';
                 const reviewTitle = review.title ? review.title : 'Ler artigo original';
-                const language = review.languageCode ? review.languageCode.toUpperCase() : 'N/A';
                 const reviewUrl = review.url ? review.url : '#';
 
                 claimHtml += `
                     <li>
-                        <p><strong>Veredito:</strong> 🚨 <em>${textualRating}</em></p>
-                        <p><strong>Agência:</strong> <a href="${publisherSite}" target="_blank">${publisherName}</a></p>
-                        <p><strong>Checagem completa:</strong> <a href="${reviewUrl}" target="_blank">${reviewTitle}</a></p>
-                        <p><strong>Idioma da checagem:</strong> ${language}</p>
+                        <p><strong>Veredito:</strong> <em>${textualRating}</em></p>
+                        <p><strong>Agência:</strong> <a href="${reviewUrl}" target="_blank">${publisherName}</a></p>
+                        <p><strong>Artigo:</strong> <a href="${reviewUrl}" target="_blank">${reviewTitle}</a></p>
                     </li>
-                    <br>
                 `;
             });
-            
             claimHtml += `</ul>`;
-        } else {
-            claimHtml += `<p><em>Nenhuma análise detalhada disponível para esta alegação.</em></p>`;
         }
 
+        // Injeta o bloco montado na tag 'li' e anexa à lista principal
         li.innerHTML = claimHtml;
         ol.appendChild(li);
     });
 
+    // Atualiza a tela exibindo os blocos processados
     resultsContainer.appendChild(ol);
 }
