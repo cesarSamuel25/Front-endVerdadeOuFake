@@ -1,5 +1,5 @@
 // ==========================================
-// CONFIGURAÇÃO: Insira a URL da sua API na nuvem aqui
+// CONFIGURAÇÃO: URL da sua API na nuvem (Railway)
 // ==========================================
 const API_URL = 'https://verdadeoufake-production.up.railway.app/fact-check/claims/search';
 
@@ -58,7 +58,7 @@ searchForm.addEventListener('submit', async (event) => {
         
         // Limpa o carregamento antigo e renderiza a falha corrigida ortograficamente
         resultsContainer.innerHTML = '<p>Nenhuma busca realizada ainda.</p>';
-        messageContainer.innerText = "Falha na requisição: Endereço da API inacessível.";
+        messageContainer.innerText = error.message || "Falha na requisição: Endereço da API inacessível.";
         
         console.error("Erro detalhado do servidor:", error);
     } finally {
@@ -73,8 +73,7 @@ searchForm.addEventListener('submit', async (event) => {
  * Função responsável por construir o HTML dinamicamente com base nos dados recebidos da API
  */
 function renderResults(data) {
-    console.log(data)
-    
+
     resultsContainer.innerHTML = ''; // Limpa o texto de carregamento
 
     // Validação extra caso a lista venha nula ou vazia
@@ -89,15 +88,19 @@ function renderResults(data) {
     data.claims.forEach(claim => {
         const li = document.createElement('li');
         
+        // --- CORREÇÃO CONTRA UNDEFINED: Fallbacks de segurança para a Claim ---
+        const textClaim = claim.text ? claim.text : 'Texto da alegação não fornecido';
+        const claimant = claim.claimant ? claim.claimant : 'Autor desconhecido';
+        
         // Trata a data da alegação para o formato brasileiro (DD/MM/AAAA)
         const claimDate = claim.claimDate 
             ? new Date(claim.claimDate).toLocaleDateString('pt-BR') 
             : 'Data não informada';
 
-        // Monta a estrutura inicial com o texto da mentira/verdade e quem falou
+        // Monta a estrutura inicial com o texto da mentira/verdade e quem falou (Garantindo variáveis seguras)
         let claimHtml = `
-            <p><strong>Alegação investigada:</strong> "${claim.text}"</p>
-            <p><strong>Quem disse:</strong> ${claim.claimant || 'Desconhecido'} (Data: ${claimDate})</p>
+            <p><strong>Alegação investigada:</strong> "${textClaim}"</p>
+            <p><strong>Quem disse:</strong> ${claimant} (Data: ${claimDate})</p>
         `;
 
         // Se houver revisões de agências de checagem dentro da claim, renderiza a sublista
@@ -105,12 +108,20 @@ function renderResults(data) {
             claimHtml += `<strong>Análise das agências de Fact-Checking:</strong><ul>`;
             
             claim.claimReview.forEach(review => {
+                // --- CORREÇÃO CONTRA UNDEFINED: Fallbacks internos do claimReview ---
+                const textualRating = review.textualRating ? review.textualRating : 'Sem classificação';
+                const publisherName = (review.publisher && review.publisher.name) ? review.publisher.name : 'Agência anônima';
+                const publisherSite = (review.publisher && review.publisher.site) ? review.publisher.site : '#';
+                const reviewTitle = review.title ? review.title : 'Ler artigo original';
+                const language = review.languageCode ? review.languageCode.toUpperCase() : 'N/A';
+                const reviewUrl = review.url ? review.url : '#';
+
                 claimHtml += `
                     <li>
-                        <p><strong>Veredito:</strong> 🚨 <em>${review.textualRating || 'Sem classificação'}</em></p>
-                        <p><strong>Agência:</strong> <a href="${review.publisher.site || '#'}" target="_blank">${review.publisher.name}</a></p>
-                        <p><strong>Checagem completa:</strong> <a href="${review.url}" target="_blank">${review.title || 'Ler artigo original'}</a></p>
-                        <p><strong>Idioma da checagem:</strong> ${review.languageCode.toUpperCase()}</p>
+                        <p><strong>Veredito:</strong> 🚨 <em>${textualRating}</em></p>
+                        <p><strong>Agência:</strong> <a href="${publisherSite}" target="_blank">${publisherName}</a></p>
+                        <p><strong>Checagem completa:</strong> <a href="${reviewUrl}" target="_blank">${reviewTitle}</a></p>
+                        <p><strong>Idioma da checagem:</strong> ${language}</p>
                     </li>
                     <br>
                 `;
