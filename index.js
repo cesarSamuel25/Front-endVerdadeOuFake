@@ -73,6 +73,8 @@ searchForm.addEventListener('submit', async (event) => {
  * Função responsável por construir o HTML dinamicamente com base nos dados recebidos da API
  */
 function renderResults(data) {
+    console.log(data)
+    
     resultsContainer.innerHTML = ''; // Limpa o texto de carregamento
 
     // Validação extra caso a lista venha nula ou vazia
